@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FALO DB Normalizer v010</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --line: #cbd5e1;
+      --text: #0f172a;
+      --muted: #475569;
+      --ok: #166534;
+      --err: #b91c1c;
+    }
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+    .card {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+    p {
+      margin: 6px 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    code {
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    input[type="text"] {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fff;
+      min-width: 360px;
+      flex: 1 1 520px;
+    }
+    input[type="file"] {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: #fff;
+    }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      background: #0f172a;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    #log {
+      margin-top: 14px;
+      white-space: pre-wrap;
+      font-size: 13px;
+      color: var(--muted);
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 120px;
+      line-height: 1.55;
+    }
+    #log.ok { color: var(--ok); }
+    #log.err { color: var(--err); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>FALO Survey DB 轉換器 (v010)</h1>
+    <p>用途：支援「Google Sheet URL」或「匯入 Excel」，轉為一般 DB 友善格式。</p>
+    <p>支援 schema：<code>row_type, submission_id, item_seq, q_no, user_id, pin, reward_code, content</code></p>
+
+    <div class="row">
+      <input id="sheetUrl" type="text" placeholder="貼上 Google Sheet URL（可留空，改用下方 Excel）" />
+      <button id="sampleBtn" type="button">範例檔案</button>
+    </div>
+
+    <div class="row">
+      <input id="file" type="file" accept=".xlsx" />
+      <button id="convertBtn">轉出標準化 XLSX</button>
+    </div>
+
+    <pre id="log"></pre>
+  </div>
+
+  <script>
+    const MAIN_SCHEMA = ["row_type", "submission_id", "item_seq", "q_no", "user_id", "pin", "reward_code", "content"];
+    const ID_INDEX_SCHEMA = ["id_type", "id_value", "submission_id", "created_at", "updated_at", "status"];
+    const SAMPLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1Jcjy2CsZ3XA6HQgF2SQRkQwdNJ4PyywfPI2mRmW6-Zg/edit?usp=sharing";
+
+    const fileInput = document.getElementById("file");
+    const sheetUrlInput = document.getElementById("sheetUrl");
+    const sampleBtn = document.getElementById("sampleBtn");
+    const convertBtn = document.getElementById("convertBtn");
+    const log = document.getElementById("log");
+
+    sheetUrlInput.value = SAMPLE_SHEET_URL;
+
+    sampleBtn.addEventListener("click", () => {
+      sheetUrlInput.value = SAMPLE_SHEET_URL;
+      setLog("已帶入範例檔案 URL，可直接按「轉出標準化 XLSX」。", "");
+    });
+
+    function setLog(message, level) {
+      log.className = level || "";
+      log.textContent = message;
+    }
+
+    function s(v) {
+      return String(v == null ? "" : v).trim();
+    }
+
+    function normalizeKey(key) {
+      return s(key).toLowerCase();
+    }
+
+    function parseSemanticContent(content) {
+      const out = {};
+      s(content).split(";;;").forEach((part) => {
+        if (!part) return;
+        const idx = part.indexOf("=");
+        if (idx < 0) return;
+        const key = s(part.slice(0, idx));
+        const value = s(part.slice(idx + 1));
+        if (key) out[key] = value;
+      });
+      return out;
+    }
+
+    function parseInteger(value) {
+      const n = Number(s(value));
+      return Number.isFinite(n) ? Math.trunc(n) : "";
+    }
+
+    function toCanonicalRow(rowObj) {
+      const out = {};
+      Object.keys(rowObj || {}).forEach((rawKey) => {
+        out[normalizeKey(rawKey)] = rowObj[rawKey];
+      });
+      return out;
+    }
+
+    function toSheetWithHeader(rows, header) {
+      if (!rows || rows.length === 0) {
+        return XLSX.utils.aoa_to_sheet([header]);
+      }
+      return XLSX.utils.json_to_sheet(rows, { header });
+    }
+
+    function findSheetNameBySchema(workbook, expectedSchema, preferredName) {
+      const names = workbook.SheetNames || [];
+      if (preferredName && names.includes(preferredName)) return preferredName;
+
+      for (let i = 0; i < names.length; i++) {
+        const name = names[i];
+        const ws = workbook.Sheets[name];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", blankrows: false });
+        if (!rows.length) continue;
+        const header = rows[0].map(normalizeKey);
+        let ok = true;
+        for (let j = 0; j < expectedSchema.length; j++) {
+          if (header[j] !== expectedSchema[j]) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) return name;
+      }
+      return "";
+    }
+
+    function readSheetRows(workbook, sheetName) {
+      if (!sheetName) return [];
+      const ws = workbook.Sheets[sheetName];
+      if (!ws) return [];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: "", blankrows: false });
+      return rows.map(toCanonicalRow);
+    }
+
+    function extractSpreadsheetId(input) {
+      const v = s(input);
+      if (!v) return "";
+      const m = v.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (m && m[1]) return m[1];
+      if (/^[a-zA-Z0-9-_]{20,}$/.test(v)) return v;
+      return "";
+    }
+
+    function buildExportXlsxUrl(sheetUrlOrId) {
+      const id = extractSpreadsheetId(sheetUrlOrId);
+      if (!id) {
+        throw new Error("無法解析 Google Sheet ID，請確認 URL 正確。");
+      }
+      return `https://docs.google.com/spreadsheets/d/${id}/export?format=xlsx`;
+    }
+
+    async function readWorkbookFromSource() {
+      if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const data = await file.arrayBuffer();
+        return {
+          wb: XLSX.read(data, { type: "array" }),
+          sourceLabel: `Excel 檔案 (${file.name})`
+        };
+      }
+
+      const sheetUrl = s(sheetUrlInput.value);
+      if (sheetUrl) {
+        const exportUrl = buildExportXlsxUrl(sheetUrl);
+        try {
+          const response = await fetch(exportUrl, { method: "GET", credentials: "omit" });
+          if (!response.ok) {
+            throw new Error(`下載失敗（HTTP ${response.status}）`);
+          }
+          const data = await response.arrayBuffer();
+          return {
+            wb: XLSX.read(data, { type: "array" }),
+            sourceLabel: `Google Sheet URL`
+          };
+        } catch (err) {
+          throw new Error(
+            `URL 讀取失敗：${err && err.message ? err.message : String(err)}。\n` +
+            "請確認該 Sheet 已開放可讀，或先匯出 Excel 再用下方檔案模式。"
+          );
+        }
+      }
+
+      throw new Error("請先貼上 Google Sheet URL，或選擇來源 .xlsx 檔案。");
+    }
+
+    function normalizeV010(mainRows, idIndexRows) {
+      const submissionMap = new Map();
+      const items = [];
+      const responseOptions = [];
+      const files = [];
+      const contacts = [];
+      const rawMain = [];
+
+      mainRows.forEach((row, idx) => {
+        const rowType = s(row.row_type).toLowerCase();
+        const content = s(row.content);
+        const parsed = parseSemanticContent(content);
+
+        const userId = s(row.user_id);
+        const pin = s(row.pin).replace(/\.0$/, "");
+        const rewardCode = s(row.reward_code);
+        const submissionId = s(row.submission_id) || s(parsed.sid) || `${userId || "UNKNOWN"}_R${idx + 2}`;
+        const itemSeq = row.item_seq !== "" ? parseInteger(row.item_seq) : parseInteger(parsed.seq);
+        const qNo = row.q_no !== "" ? parseInteger(row.q_no) : parseInteger(parsed.q_no);
+
+        rawMain.push({
+          row_no: idx + 2,
+          row_type: rowType,
+          submission_id: submissionId,
+          item_seq: itemSeq,
+          q_no: qNo,
+          user_id: userId,
+          pin,
+          reward_code: rewardCode,
+          content
+        });
+
+        if (!submissionMap.has(submissionId)) {
+          submissionMap.set(submissionId, {
+            submission_id: submissionId,
+            user_id: userId,
+            pin,
+            reward_code: rewardCode,
+            timestamp: "",
+            version: "",
+            contact: "",
+            file_name: "",
+            file_url: "",
+            row_count: 0,
+            item_count: 0,
+            q_count: 0
+          });
+        }
+
+        const sub = submissionMap.get(submissionId);
+        if (!sub.user_id && userId) sub.user_id = userId;
+        if (!sub.pin && pin) sub.pin = pin;
+        if (!sub.reward_code && rewardCode) sub.reward_code = rewardCode;
+        sub.row_count += 1;
+
+        const item = {
+          submission_id: submissionId,
+          item_seq: itemSeq,
+          q_no: qNo,
+          row_type: rowType,
+          user_id: userId,
+          pin,
+          reward_code: rewardCode,
+          qid: s(parsed.qid),
+          question: s(parsed.question),
+          ans: s(parsed.ans),
+          other: s(parsed.other),
+          text: s(parsed.text),
+          referrer: s(parsed.referrer),
+          contact: s(parsed.contact),
+          file_name: s(parsed.name),
+          file_url: s(parsed.url),
+          sid: s(parsed.sid),
+          seq_from_content: parseInteger(parsed.seq),
+          q_no_from_content: parseInteger(parsed.q_no),
+          raw_content: content
+        };
+        items.push(item);
+        sub.item_count += 1;
+
+        if (/^q\d+$/i.test(rowType)) {
+          sub.q_count += 1;
+          const ansCodes = s(parsed.ans)
+            .split("||")
+            .map((v) => s(v))
+            .filter(Boolean);
+
+          ansCodes.forEach((code, optionIndex) => {
+            responseOptions.push({
+              submission_id: submissionId,
+              q_no: qNo,
+              qid: s(parsed.qid) || rowType.toUpperCase(),
+              option_seq: optionIndex + 1,
+              option_code: code
+            });
+          });
+        }
+
+        if (rowType === "meta") {
+          sub.timestamp = s(parsed.timestamp) || sub.timestamp;
+          sub.version = s(parsed.version) || sub.version;
+        } else if (rowType === "file") {
+          const fileName = s(parsed.name);
+          const fileUrl = s(parsed.url);
+          if (fileName) sub.file_name = fileName;
+          if (fileUrl) sub.file_url = fileUrl;
+          files.push({
+            submission_id: submissionId,
+            item_seq: itemSeq,
+            user_id: userId,
+            file_name: fileName,
+            file_url: fileUrl,
+            raw_content: content
+          });
+        } else if (rowType === "contact") {
+          const contactValue = s(parsed.contact);
+          if (contactValue) sub.contact = contactValue;
+          contacts.push({
+            submission_id: submissionId,
+            item_seq: itemSeq,
+            user_id: userId,
+            contact: contactValue,
+            raw_content: content
+          });
+        }
+      });
+
+      const submissions = Array.from(submissionMap.values()).sort((a, b) => {
+        return s(a.submission_id).localeCompare(s(b.submission_id));
+      });
+
+      const idIndex = [];
+      if (idIndexRows && idIndexRows.length) {
+        idIndexRows.forEach((row) => {
+          idIndex.push({
+            id_type: s(row.id_type),
+            id_value: s(row.id_value),
+            submission_id: s(row.submission_id),
+            created_at: s(row.created_at),
+            updated_at: s(row.updated_at),
+            status: s(row.status) || "ACTIVE",
+            source: "id_index"
+          });
+        });
+      }
+
+      if (!idIndex.length) {
+        submissions.forEach((sub) => {
+          if (sub.user_id) {
+            idIndex.push({
+              id_type: "USER_ID",
+              id_value: sub.user_id,
+              submission_id: sub.submission_id,
+              created_at: "",
+              updated_at: "",
+              status: "ACTIVE",
+              source: "derived"
+            });
+          }
+          if (sub.reward_code) {
+            idIndex.push({
+              id_type: "REWARD_CODE",
+              id_value: sub.reward_code,
+              submission_id: sub.submission_id,
+              created_at: "",
+              updated_at: "",
+              status: "ACTIVE",
+              source: "derived"
+            });
+          }
+        });
+      }
+
+      return { submissions, items, responseOptions, files, contacts, idIndex, rawMain };
+    }
+
+    convertBtn.addEventListener("click", async () => {
+      try {
+        convertBtn.disabled = true;
+        setLog("解析來源資料中...", "");
+
+        const { wb, sourceLabel } = await readWorkbookFromSource();
+
+        const mainSheetName = findSheetNameBySchema(wb, MAIN_SCHEMA, "main");
+        if (!mainSheetName) {
+          throw new Error("找不到符合 v010 schema 的 main 工作表。");
+        }
+        const idIndexSheetName = findSheetNameBySchema(wb, ID_INDEX_SCHEMA, "id_index");
+
+        const mainRows = readSheetRows(wb, mainSheetName);
+        const idIndexRows = readSheetRows(wb, idIndexSheetName);
+
+        const result = normalizeV010(mainRows, idIndexRows);
+
+        const outWb = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(
+          outWb,
+          toSheetWithHeader(result.submissions, [
+            "submission_id", "user_id", "pin", "reward_code", "timestamp", "version", "contact", "file_name", "file_url", "row_count", "item_count", "q_count"
+          ]),
+          "submissions"
+        );
+
+        XLSX.utils.book_append_sheet(
+          outWb,
+          toSheetWithHeader(result.items, [
+            "submission_id", "item_seq", "q_no", "row_type", "user_id", "pin", "reward_code", "qid", "question", "ans", "other", "text", "referrer", "contact", "file_name", "file_url", "sid", "seq_from_content", "q_no_from_content", "raw_content"
+          ]),
+          "items"
+        );
+
+        XLSX.utils.book_append_sheet(
+          outWb,
+          toSheetWithHeader(result.responseOptions, ["submission_id", "q_no", "qid", "option_seq", "option_code"]),
+          "response_options"
+        );
+
+        XLSX.utils.book_append_sheet(
+          outWb,
+          toSheetWithHeader(result.files, ["submission_id", "item_seq", "user_id", "file_name", "file_url", "raw_content"]),
+          "files"
+        );
+
+        XLSX.utils.book_append_sheet(
+          outWb,
+          toSheetWithHeader(result.contacts, ["submission_id", "item_seq", "user_id", "contact", "raw_content"]),
+          "contacts"
+        );
+
+        XLSX.utils.book_append_sheet(
+          outWb,
+          toSheetWithHeader(result.idIndex, ["id_type", "id_value", "submission_id", "created_at", "updated_at", "status", "source"]),
+          "id_index"
+        );
+
+        XLSX.utils.book_append_sheet(
+          outWb,
+          toSheetWithHeader(result.rawMain, ["row_no", "row_type", "submission_id", "item_seq", "q_no", "user_id", "pin", "reward_code", "content"]),
+          "raw_main"
+        );
+
+        const ts = new Date();
+        const stamp = [
+          String(ts.getFullYear()),
+          String(ts.getMonth() + 1).padStart(2, "0"),
+          String(ts.getDate()).padStart(2, "0"),
+          "-",
+          String(ts.getHours()).padStart(2, "0"),
+          String(ts.getMinutes()).padStart(2, "0"),
+          String(ts.getSeconds()).padStart(2, "0")
+        ].join("");
+        const outputName = `falo_general_db_v010_${stamp}.xlsx`;
+
+        XLSX.writeFile(outWb, outputName);
+
+        setLog(
+          [
+            `完成：${outputName}`,
+            `資料來源：${sourceLabel}`,
+            `來源工作表：main=${mainSheetName}${idIndexSheetName ? `, id_index=${idIndexSheetName}` : "（未提供，已自動推導）"}`,
+            `submissions=${result.submissions.length}`,
+            `items=${result.items.length}`,
+            `response_options=${result.responseOptions.length}`,
+            `files=${result.files.length}`,
+            `contacts=${result.contacts.length}`,
+            `id_index=${result.idIndex.length}`
+          ].join("\n"),
+          "ok"
+        );
+      } catch (err) {
+        setLog(`失敗：${err && err.message ? err.message : String(err)}`, "err");
+      } finally {
+        convertBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
