@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <!--
+    FALO AI Survey System
+    Copyright (c) Force Cheng × FALO
+
+    This file is part of the FALO AI Workflow research project.
+    Unauthorized commercial redistribution is not permitted.
+
+    Project: FALO Web
+    Author: Force Cheng
+    System: AI-friendly survey system
+    Data model: semantic record (;;; ||)
+
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falo Web AI 問卷 v0.10</title>
+    <meta name="description" content="FALO AI 問卷系統示範頁，蒐集 AI 使用現況、導入困難與實務需求。">
+    <meta name="keywords" content="FALO, AI 問卷, AI Survey, AI Workflow, AI Agent, 數位轉型">
+    <meta name="author" content="Force Cheng">
+    <meta name="robots" content="index,follow">
+    <meta name="generator" content="FALO Survey System v0.10 - Force Cheng">
+    <meta name="ai-content-type" content="survey-form">
+    <meta name="ai-topic" content="AI adoption and workflow insights">
+    <meta name="ai-author" content="Force Cheng">
+    <meta name="ai-project" content="FALO AI Workflow Research">
+    <meta name="ai-system" content="FALO Survey System">
+    <meta name="ai-data-format" content="semantic-record">
+    <meta name="geo.region" content="TW-TPE">
+    <meta name="geo.placename" content="Taipei">
+    <meta name="geo.position" content="25.0330;121.5654">
+    <meta name="ICBM" content="25.0330, 121.5654">
+    <meta name="geo.country" content="Taiwan">
+    <meta name="geo.city" content="Taipei">
+    <meta name="distribution" content="global">
+    <meta name="rating" content="general">
+    <meta name="language" content="zh-TW">
+    <meta name="content-language" content="zh-TW">
+    <meta name="revisit-after" content="7 days">
+    <!-- 使用 Tailwind CSS 加速開發與響應式佈局 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8fafc;
+        }
+        .form-card {
+            transition: all 0.3s ease;
+        }
+        /* 隱藏原生 checkbox，使用自定義樣式 */
+        .custom-checkbox:checked + label {
+            border-color: #6366f1;
+            background-color: #f5f3ff;
+            box-shadow: 0 0 0 1px #6366f1;
+        }
+        /* 代碼顯示區塊樣式 */
+        .code-block {
+            background-color: #f1f5f9;
+            border: 1px dashed #cbd5e1;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body class="py-12 px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-3xl mx-auto">
+        <!-- 頁首標題與前言說明 -->
+        <header class="mb-12">
+            <div class="text-center mb-10">
+                <h1 class="text-3xl font-extrabold text-slate-900 sm:text-4xl mb-4">
+                    Falo Web AI 問卷 <span class="text-indigo-600">v0.10</span>
+                </h1>
+                <div class="inline-flex items-center text-xs font-mono text-slate-400 bg-white px-3 py-1 rounded-full border border-slate-200">
+                    <span>Version: v0.10</span>
+                    <span class="mx-2">|</span>
+                    <span>Update: 2026/03/10</span>
+                </div>
+            </div>
+
+            <!-- 前言說明區塊 -->
+            <div class="bg-white border-l-4 border-indigo-500 p-6 sm:p-8 rounded-r-2xl shadow-sm text-slate-600 leading-relaxed space-y-4">
+                <p>
+                    FALO 是一群對 AI 充滿好奇與熱情的同好者所形成的交流平台。我們持續觀察與整理 AI 在工作與生活中的真實應用，例如 AI tool、AI skills、AI workflow、AI agent 與各種導入案例，希望讓更多人能更輕鬆地理解與運用 AI。
+                </p>
+                <p>
+                    這份問卷的目的，是想了解大家在 AI 使用、導入與協作上的經驗與需求。這些回饋將成為 FALO 的重要資料，幫助我們整理更多實際案例、研究觀察與有價值的內容。
+                </p>
+                <p>
+                    本問卷採匿名填寫。送出後，系統會自動產生一組 <span class="text-indigo-600 font-semibold">[虛擬帳號]</span>、三碼 <span class="text-indigo-600 font-semibold">[PIN]</span>（系統隨機產生的登入密碼）與 <span class="text-indigo-600 font-semibold">[優惠卷]</span>。請妥善保存這組代碼，未來可用於活動參與、優惠兌換或後續互動。
+                </p>
+                <p>
+                    每一份回饋都非常珍貴。您的參與不只是填寫一份問卷，也是在幫助 FALO 一起累積 AI 時代的實際經驗與知識。我們也會為每一份積極的參與提供相應的回饋。
+                </p>
+            </div>
+        </header>
+
+        <!-- 問卷主體 -->
+        <form id="surveyForm" class="space-y-8">
+            
+            <!-- Q1: AI 發展感受 -->
+            <section class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 form-card">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 text-sm">Q1</span>
+                    你目前對 <span class="text-indigo-600 mx-1 underline decoration-2 underline-offset-4">AI 發展與影響</span> 的感受最接近哪些？
+                </h2>
+                <p class="text-sm text-slate-500 mb-6 italic">（可複選）</p>
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="relative">
+                        <input type="checkbox" id="q1_o1" name="q1" value="Q1_01" class="hidden custom-checkbox">
+                        <label for="q1_o1" class="block p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-2">1.</span> 覺得 AI 帶來很多新的機會
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q1_o2" name="q1" value="Q1_02" class="hidden custom-checkbox">
+                        <label for="q1_o2" class="block p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-2">2.</span> 對 AI 發展感到興奮
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q1_o3" name="q1" value="Q1_03" class="hidden custom-checkbox">
+                        <label for="q1_o3" class="block p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 border-slate-200 font-medium">
+                            <span class="text-slate-500 mr-2">3.</span> 對 AI 發展感到焦慮
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q1_o4" name="q1" value="Q1_04" class="hidden custom-checkbox">
+                        <label for="q1_o4" class="block p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-2">4.</span> 覺得 AI 變化太快，有點跟不上
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q1_o5" name="q1" value="Q1_05" class="hidden custom-checkbox">
+                        <label for="q1_o5" class="block p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-2">5.</span> 覺得 AI 目前被過度炒作
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q1_o6" name="q1" value="Q1_06" class="hidden custom-checkbox">
+                        <label for="q1_o6" class="block p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-2">6.</span> 還在觀察 AI 的發展
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q1_o7" name="q1" value="Q1_07" class="hidden custom-checkbox">
+                        <label for="q1_o7" class="block p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700">
+                            <span class="text-slate-500 mr-2">7.</span> 已經開始積極研究或使用 AI
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q1_o8" name="q1" value="other" class="hidden custom-checkbox" onchange="toggleOtherInput('q1_other_text', this)">
+                        <label for="q1_o8" class="block p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors italic text-slate-500">
+                            其他（請簡單說明）
+                        </label>
+                        <input type="text" id="q1_other_text" class="mt-2 w-full p-3 border-b-2 border-slate-200 focus:border-indigo-500 outline-none hidden transition-all" placeholder="請填寫您的感受...">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Q2: 使用現況 -->
+            <section class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 form-card">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 text-sm">Q2</span>
+                    你目前在 <span class="text-indigo-600 mx-1 underline decoration-2 underline-offset-4">工作或學習中使用 AI 的情況</span> 最接近哪些？
+                </h2>
+                <p class="text-sm text-slate-500 mb-6 italic">（可複選）</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o1" name="q2" value="Q2_01" class="hidden custom-checkbox">
+                        <label for="q2_o1" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-1">1.</span> 還沒有使用 AI
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o2" name="q2" value="Q2_02" class="hidden custom-checkbox">
+                        <label for="q2_o2" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-1">2.</span> 偶爾嘗試 AI 工具
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o3" name="q2" value="Q2_03" class="hidden custom-checkbox">
+                        <label for="q2_o3" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700">
+                            <span class="text-slate-500 mr-1">3.</span> 已經常使用 AI
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o4" name="q2" value="Q2_04" class="hidden custom-checkbox">
+                        <label for="q2_o4" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-1">4.</span> AI 已經成為我的工作工具之一
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o5" name="q2" value="Q2_05" class="hidden custom-checkbox">
+                        <label for="q2_o5" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-1">5.</span> 自己有付費使用 AI (例如 ChatGPT/Claude/Gemini 等)
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o6" name="q2" value="Q2_06" class="hidden custom-checkbox">
+                        <label for="q2_o6" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-1">6.</span> 公司提供 AI 付費工具
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o7" name="q2" value="Q2_07" class="hidden custom-checkbox">
+                        <label for="q2_o7" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-1">7.</span> 正在研究 AI workflow / 自動化
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o8" name="q2" value="Q2_08" class="hidden custom-checkbox">
+                        <label for="q2_o8" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-1">8.</span> 正在嘗試 AI Agent
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o9" name="q2" value="Q2_09" class="hidden custom-checkbox">
+                        <label for="q2_o9" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 mr-1">9.</span> 正在推動團隊或組織使用 AI
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q2_o10" name="q2" value="other" class="hidden custom-checkbox" onchange="toggleOtherInput('q2_other_text', this)">
+                        <label for="q2_o10" class="block h-full p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors italic text-slate-500">其他（請說明）</label>
+                    </div>
+                </div>
+                <input type="text" id="q2_other_text" class="mt-4 w-full p-3 border-b-2 border-slate-200 focus:border-indigo-500 outline-none hidden transition-all" placeholder="請詳細說明您的情況...">
+            </section>
+
+            <!-- Q3: 導入困難 -->
+            <section class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 form-card">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 text-sm">Q3</span>
+                    如果要在 <span class="text-indigo-600 mx-1 underline decoration-2 underline-offset-4">工作或組織中導入 AI</span> ，你目前遇到或觀察到的困難有哪些？
+                </h2>
+                <p class="text-sm text-slate-500 mb-6 italic">（可複選）</p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o1" name="q3" value="Q3_01" class="hidden custom-checkbox">
+                        <label for="q3_o1" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">1.</span> 不知道 AI 可以做什麼
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o2" name="q3" value="Q3_02" class="hidden custom-checkbox">
+                        <label for="q3_o2" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">2.</span> 不知道從哪開始
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o3" name="q3" value="Q3_03" class="hidden custom-checkbox">
+                        <label for="q3_o3" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">3.</span> 不知道哪些 AI 工具適合
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o4" name="q3" value="Q3_04" class="hidden custom-checkbox">
+                        <label for="q3_o4" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">4.</span> 缺乏清楚的導入方法
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o5" name="q3" value="Q3_05" class="hidden custom-checkbox">
+                        <label for="q3_o5" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">5.</span> AI 工具太多
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o6" name="q3" value="Q3_06" class="hidden custom-checkbox">
+                        <label for="q3_o6" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">6.</span> 不知道如何整合不同 AI 工具
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o7" name="q3" value="Q3_07" class="hidden custom-checkbox">
+                        <label for="q3_o7" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">7.</span> 不知道如何建立 AI workflow
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o8" name="q3" value="Q3_08" class="hidden custom-checkbox">
+                        <label for="q3_o8" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">8.</span> 不熟悉 AI Agent 或自動化
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o9" name="q3" value="Q3_09" class="hidden custom-checkbox">
+                        <label for="q3_o9" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">9.</span> 主管或決策者不理解 AI
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o10" name="q3" value="Q3_10" class="hidden custom-checkbox">
+                        <label for="q3_o10" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">10.</span> 團隊或同事抗拒改變
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o11" name="q3" value="Q3_11" class="hidden custom-checkbox">
+                        <label for="q3_o11" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors text-slate-700 font-medium">
+                            <span class="text-slate-500 text-xs mr-1">11.</span> 公司沒有 AI 導入策略
+                        </label>
+                    </div>
+                    <div class="flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o12" name="q3" value="Q3_12" class="hidden custom-checkbox">
+                        <label for="q3_o12" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700">
+                            <span class="text-slate-500 text-xs mr-1">12.</span> AI 成本與 ROI 不清楚
+                        </label>
+                    </div>
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o13" name="q3" value="Q3_13" class="hidden custom-checkbox">
+                        <label for="q3_o13" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700">
+                            <span class="text-slate-500 text-xs mr-1">13.</span> 資安或法規疑慮
+                        </label>
+                    </div>
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <input type="checkbox" id="q3_o14" name="q3" value="other" class="hidden custom-checkbox" onchange="toggleOtherInput('q3_other_text', this)">
+                        <label for="q3_o14" class="block px-5 py-3 border rounded-full text-sm cursor-pointer hover:bg-slate-50 transition-colors italic text-slate-500">
+                            其他（請說明）
+                        </label>
+                    </div>
+                </div>
+                <input type="text" id="q3_other_text" class="mt-4 w-full p-3 border-b-2 border-slate-200 focus:border-indigo-500 outline-none hidden transition-all" placeholder="請描述您遇到的困難...">
+            </section>
+
+            <!-- Q4: 平台需求 -->
+            <section class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 form-card">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 text-sm">Q4</span>
+                    如果有一個 AI platform 或社群（例如 FALO），你最希望它提供哪些內容或幫助？
+                </h2>
+                <p class="text-sm text-slate-500 mb-6 italic">（可複選）</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o1" name="q4" value="Q4_01" class="hidden custom-checkbox">
+                        <label for="q4_o1" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-blue-50 p-2 rounded-lg mr-4 text-xl">🛠️</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">1.</span> 教我怎麼把 AI 用在工作上</div>
+                                <div class="text-xs text-slate-500 mt-1">(workflow / agent / 自動化)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o2" name="q4" value="Q4_02" class="hidden custom-checkbox">
+                        <label for="q4_o2" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-green-50 p-2 rounded-lg mr-4 text-xl">💡</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">2.</span> 看看別人怎麼用 AI</div>
+                                <div class="text-xs text-slate-500 mt-1">(企業 / 團隊 / 個人案例)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o3" name="q4" value="Q4_03" class="hidden custom-checkbox">
+                        <label for="q4_o3" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-amber-50 p-2 rounded-lg mr-4 text-xl">📚</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">3.</span> 整理好用的 AI 工具與學習資源</div>
+                                <div class="text-xs text-slate-500 mt-1">(工具 / 好書 / 好網站)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o4" name="q4" value="Q4_04" class="hidden custom-checkbox">
+                        <label for="q4_o4" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-indigo-50 p-2 rounded-lg mr-4 text-xl">🌏</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">4.</span> 了解 AI 未來會怎麼改變世界</div>
+                                <div class="text-xs text-slate-500 mt-1">(產業 / 社會 / 趨勢)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o5" name="q4" value="Q4_05" class="hidden custom-checkbox">
+                        <label for="q4_o5" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-rose-50 p-2 rounded-lg mr-4 text-xl">⚖️</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">5.</span> AI 使用的風險與治理問題</div>
+                                <div class="text-xs text-slate-500 mt-1">(資安 / 法規 / 資料)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o6" name="q4" value="Q4_06" class="hidden custom-checkbox">
+                        <label for="q4_o6" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-purple-50 p-2 rounded-lg mr-4 text-xl">🏢</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">6.</span> 企業 AI 導入服務</div>
+                                <div class="text-xs text-slate-500 mt-1">(顧問 / 內訓 / 包班)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o7" name="q4" value="Q4_07" class="hidden custom-checkbox">
+                        <label for="q4_o7" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-blue-50 p-2 rounded-lg mr-4 text-xl">🎓</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">7.</span> 個人 AI 學習與能力提升</div>
+                                <div class="text-xs text-slate-500 mt-1">(課程 / 工作坊)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o8" name="q4" value="Q4_08" class="hidden custom-checkbox">
+                        <label for="q4_o8" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-orange-50 p-2 rounded-lg mr-4 text-xl">👨‍🏫</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">8.</span> 專家諮詢與一對一指導</div>
+                                <div class="text-xs text-slate-500 mt-1">(高端家教 / 導入諮詢)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o10" name="q4" value="Q4_10" class="hidden custom-checkbox">
+                        <label for="q4_o10" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-emerald-50 p-2 rounded-lg mr-4 text-xl">📦</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">9.</span> AI 工作流模板或工具包</div>
+                                <div class="text-xs text-slate-500 mt-1">(實用工具)</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox" id="q4_o11" name="q4" value="Q4_11" class="hidden custom-checkbox">
+                        <label for="q4_o11" class="flex items-start p-4 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
+                            <div class="bg-indigo-50 p-2 rounded-lg mr-4 text-xl">🤝</div>
+                            <div>
+                                <div class="font-semibold text-slate-900"><span class="text-slate-500 mr-1">10.</span> AI 社群交流與案例分享</div>
+                                <div class="text-xs text-slate-500 mt-1">(討論 / 分享)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Q5: 開放式需求與附件 -->
+            <section class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 form-card">
+                <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 text-sm">Q5</span>
+                    開放式需求、問題或想法（選填）
+                </h2>
+                <p class="text-sm text-slate-600 mb-6">
+                    可描述 AI 使用需求、導入問題，或補充情境細節；也可上傳附件。你提供的內容將用於 FALO 案例整理與研究。
+                </p>
+                
+                <div class="space-y-6">
+                    <!-- Q5-1: 需求說明 -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Q5-1 需求 / 問題說明（最多 500 字）</label>
+                        <textarea id="q5_text" rows="5" maxlength="500" oninput="updateQ5Counter()" class="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="請描述您的 AI 使用需求、導入問題，或希望解決的情境（最多 500 字）..."></textarea>
+                        <p id="q5_counter" class="mt-2 text-xs text-slate-400">已輸入 0 / 500，剩餘 500 字</p>
+                    </div>
+
+                    <!-- Q5-2: 附件上傳 -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Q5-2 附件上傳 (選填)</label>
+                        <div class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center bg-slate-50 group hover:bg-slate-100 transition-all">
+                            <svg class="mx-auto h-10 w-10 text-slate-400 group-hover:text-indigo-500 mb-4 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-sm text-slate-600 mb-2" id="fileNameDisplay">建議檔案小於 10MB，將資料打包為一個壓縮檔 (ZIP/RAR) 後上傳</p>
+                            <input type="file" id="q5_file" class="hidden" onchange="updateFileName(this)">
+                            <button type="button" onclick="document.getElementById('q5_file').click()" class="mt-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">選擇檔案</button>
+                            <p class="mt-3 text-[10px] text-slate-400">註：如資料涉及敏感資訊，建議先自行去識別化處理。</p>
+                        </div>
+                    </div>
+
+                    <!-- Q5-3: 聯絡方式 -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Q5-3 聯絡方式（可填寫多項，選填）</label>
+                        <p class="text-xs text-slate-500 mb-2">格式不拘，請以逗號或空白區隔不同項目。</p>
+                        <input type="text" id="contact" class="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Email / Line ID / Telegram / 微信 / 電話（可多項，以逗號分隔）">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Q6: 推薦人代號 -->
+            <section class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 form-card">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full inline-flex items-center justify-center mr-3 text-sm">Q6</span>
+                    你的推薦人代號（選填）
+                </h2>
+                <input type="text" id="q6_referrer" class="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="請輸入推薦人代號（如：FF123456）">
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onclick="setReferrerCode('FF000001')" class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50">Force</button>
+                    <button type="button" onclick="setReferrerCode('FF000002')" class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50">Kelly</button>
+                    <button type="button" onclick="setReferrerCode('FF000003')" class="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50">David</button>
+                </div>
+            </section>
+
+            <!-- 提交按鈕 -->
+            <div class="pt-8 pb-12">
+                <button type="button" id="submitBtn" onclick="handleSubmit()" class="w-full sm:w-auto px-12 py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 hover:shadow-xl transform transition-all active:scale-95 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                    送出問卷資料
+                </button>
+                <div id="statusMessage" class="hidden mt-6 p-4 rounded-xl text-center font-medium"></div>
+            </div>
+
+        </form>
+
+        <footer class="mt-20 border-t border-slate-200 pt-8 text-center pb-20">
+            <p class="text-sm text-slate-500">© Force Cheng × FALO</p>
+            <p class="mt-1 text-xs text-slate-400">AI Workflow & Systems Research</p>
+            <p class="mt-1 text-xs text-slate-400">FALO Survey System v0.10</p>
+        </footer>
+    </div>
+
+    <!-- 成功彈出視窗 (Modal) -->
+    <div id="successModal" class="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50 hidden backdrop-blur-md">
+        <div class="bg-white p-6 sm:p-10 rounded-3xl max-w-md w-full shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div class="bg-green-100 text-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            
+            <h3 class="text-2xl font-bold text-slate-900 text-center mb-2">問卷已完成，感謝你的參與！</h3>
+            <p class="text-slate-600 text-center text-sm mb-6 leading-relaxed">
+                系統已為你產生一組 FALO 代碼。<br>
+                請保存以下資訊，未來可能用於活動參與或獎勵兌換。<br>
+                請保存此代碼，以便未來活動或回饋使用。
+            </p>
+
+            <!-- 代碼顯示區域 -->
+            <div class="space-y-4 mb-8">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 tracking-widest block mb-1 text-center">虛擬帳號</span>
+                    <div id="displayUserId" class="code-block w-full p-3 rounded-lg text-lg font-bold text-slate-800 text-center tracking-wider">FF000000</div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 text-center">PIN</span>
+                        <div id="displayPin" class="code-block w-full p-3 rounded-lg text-lg font-bold text-slate-800 text-center">---</div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 tracking-widest block mb-1 text-center">優惠卷</span>
+                        <div id="displayReward" class="code-block w-full p-3 rounded-lg text-lg font-bold text-slate-800 text-center">RR000000</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col space-y-3">
+                <button onclick="copyCodes()" class="w-full py-4 bg-indigo-50 text-indigo-700 font-bold rounded-2xl hover:bg-indigo-100 transition-all flex items-center justify-center">
+                    一鍵複製代碼
+                </button>
+                <button onclick="closeModal()" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-lg active:scale-[0.98]">
+                    完成 / 關閉
+                </button>
+            </div>
+            <p id="copyStatus" class="text-[10px] text-center mt-3 text-indigo-500 font-medium h-4 invisible">代碼已成功複製到剪貼簿</p>
+        </div>
+    </div>
+
+    <script>
+        /*
+        FALO AI Survey System
+
+        Architecture:
+        Survey UI
+        → Semantic Record
+        → GAS Pipeline
+        → Google Sheet
+        → FALO Knowledge Base
+
+        Author: Force Cheng
+        Project: FALO Web
+        */
+        const APP_VERSION = "v0.10";
+        // 🚀 更新為新部署的 Web App URL
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwHjm6fAPT5We2YpB2zs-GoJgbffrfefcBFay8kj1Ixi1tSiXhGkeRQyKY24wBZxOIe/exec";
+
+        function updateQ5Counter() {
+            const q5 = document.getElementById('q5_text');
+            const counter = document.getElementById('q5_counter');
+            if (!q5 || !counter) return;
+            const len = q5.value.length;
+            const remain = 500 - len;
+            counter.textContent = `已輸入 ${len} / 500，剩餘 ${remain} 字`;
+
+            if (len >= 450) {
+                counter.className = 'mt-2 text-xs text-red-500';
+            } else if (len >= 350) {
+                counter.className = 'mt-2 text-xs text-amber-500';
+            } else {
+                counter.className = 'mt-2 text-xs text-slate-400';
+            }
+        }
+
+        function setReferrerCode(code) {
+            const input = document.getElementById('q6_referrer');
+            if (!input) return;
+            input.value = code;
+            input.focus();
+        }
+
+        function toggleOtherInput(inputId, checkbox) {
+            const input = document.getElementById(inputId);
+            if (checkbox.checked) {
+                input.classList.remove('hidden');
+                input.focus();
+            } else {
+                input.classList.add('hidden');
+            }
+        }
+
+        function updateFileName(input) {
+            const display = document.getElementById('fileNameDisplay');
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const limitMB = 10;
+                if (file.size > limitMB * 1024 * 1024) {
+                    alert(`檔案大小建議小於 ${limitMB}MB（目前已超過限制），請壓縮後再試。`);
+                    input.value = "";
+                    display.textContent = "建議檔案小於 10MB，將資料打包為一個壓縮檔 (ZIP/RAR) 後上傳";
+                    return;
+                }
+                display.textContent = `已選取：${file.name} (${(file.size/1024/1024).toFixed(2)}MB)`;
+                display.classList.add('text-indigo-600', 'font-semibold');
+            } else {
+                display.textContent = "建議檔案小於 10MB，將資料打包為一個壓縮檔 (ZIP/RAR) 後上傳";
+                display.classList.remove('text-indigo-600', 'font-semibold');
+            }
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 從題目區塊讀取 Q 標題文字，避免前後端硬編碼耦合
+        function getQuestionTextByQid(qid) {
+            const headers = Array.from(document.querySelectorAll('section h2'));
+            const header = headers.find(h2 => {
+                const badge = h2.querySelector('span');
+                return badge && badge.textContent.trim().toUpperCase() === qid.toUpperCase();
+            });
+            if (!header) return "";
+            return header.textContent
+                .replace(/\s+/g, ' ')
+                .replace(new RegExp(`^\\s*${qid}\\s*`, 'i'), '')
+                .trim();
+        }
+
+        /**
+         * 處理問卷提交邏輯
+         */
+        async function handleSubmit() {
+            const statusMsg = document.getElementById('statusMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            const q1Checked = document.querySelectorAll('input[name="q1"]:checked');
+            const fileInput = document.getElementById('q5_file');
+            
+            if (q1Checked.length === 0) {
+                statusMsg.textContent = "⚠️ 請至少選擇一個您對 AI 發展的感受 (Q1)。";
+                statusMsg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-red-100 text-red-600";
+                statusMsg.classList.remove('hidden');
+                document.getElementById('surveyForm').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+
+            // 鎖定 UI 並顯示真實進度
+            submitBtn.disabled = true;
+            submitBtn.textContent = "準備上傳中...";
+            statusMsg.textContent = "正在處理問卷內容與加密附件...";
+            statusMsg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-blue-50 text-blue-600";
+            statusMsg.classList.remove('hidden');
+
+            const timestamp = new Date().toISOString();
+
+            const formData = {
+                timestamp: timestamp,
+                q1: Array.from(q1Checked).map(i => i.value),
+                q1_question: getQuestionTextByQid('Q1'),
+                q1_other: document.getElementById('q1_other_text').value,
+                q2: Array.from(document.querySelectorAll('input[name="q2"]:checked')).map(i => i.value),
+                q2_question: getQuestionTextByQid('Q2'),
+                q2_other: document.getElementById('q2_other_text').value,
+                q3: Array.from(document.querySelectorAll('input[name="q3"]:checked')).map(i => i.value),
+                q3_question: getQuestionTextByQid('Q3'),
+                q3_other: document.getElementById('q3_other_text').value,
+                q4: Array.from(document.querySelectorAll('input[name="q4"]:checked')).map(i => i.value),
+                q4_question: getQuestionTextByQid('Q4'),
+                q5_text: document.getElementById('q5_text').value,
+                q5_question: getQuestionTextByQid('Q5'),
+                contact: document.getElementById('contact').value,
+                q6_referrer: document.getElementById('q6_referrer').value,
+                q6_question: getQuestionTextByQid('Q6'),
+                file_data: "",
+                file_name: ""
+            };
+
+            if (fileInput.files && fileInput.files[0]) {
+                try {
+                    // 前端僅傳原始檔名，最終命名規則由後端統一處理
+                    const originalName = fileInput.files[0].name;
+                    formData.file_data = await readFileAsBase64(fileInput.files[0]);
+                    formData.file_name = originalName;
+                } catch (e) {
+                    console.error("檔案編碼失敗:", e);
+                }
+            }
+
+            submitBtn.textContent = "資料同步中...";
+            statusMsg.textContent = "正在等待後端確認並寫入資料...";
+
+            try {
+                const jsonPayload = JSON.stringify(formData);
+                const blob = new Blob([jsonPayload], { type: 'text/plain;charset=utf-8' });
+
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: blob
+                });
+
+                const responseText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseErr) {
+                    throw new Error("後端回應格式錯誤，請確認 Web App 已部署為最新版本。");
+                }
+
+                if (!response.ok || !result || result.status !== "success") {
+                    throw new Error((result && result.message) || `提交失敗（HTTP ${response.status}）`);
+                }
+
+                const userId = result.user_id;
+                const pin = result.pin;
+                const rewardCode = result.reward_code;
+                if (!userId || !pin || !rewardCode) {
+                    throw new Error("後端未回傳完整代碼，請稍後重試。");
+                }
+                
+                document.getElementById('displayUserId').textContent = userId;
+                document.getElementById('displayPin').textContent = pin;
+                document.getElementById('displayReward').textContent = rewardCode;
+                document.getElementById('successModal').classList.remove('hidden');
+                statusMsg.classList.add('hidden');
+                
+            } catch (error) {
+                console.error("Submission error:", error);
+                statusMsg.textContent = `❌ ${error.message || "後端確認失敗，請稍後再試。"}`;
+                statusMsg.className = "mt-6 p-4 rounded-xl text-center font-medium bg-red-100 text-red-600";
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "送出問卷資料";
+            }
+        }
+
+        function copyCodes() {
+            const uid = document.getElementById('displayUserId').textContent;
+            const pin = document.getElementById('displayPin').textContent;
+            const reward = document.getElementById('displayReward').textContent;
+            const copyText = `FALO AI 憑證:\n虛擬帳號: ${uid}\nPIN: ${pin}\n優惠卷: ${reward}`;
+            const textArea = document.createElement("textarea");
+            textArea.value = copyText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            const copyStatus = document.getElementById('copyStatus');
+            copyStatus.classList.remove('invisible');
+            setTimeout(() => copyStatus.classList.add('invisible'), 2000);
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.add('hidden');
+            document.getElementById('surveyForm').reset();
+            document.getElementById('fileNameDisplay').textContent = "建議檔案小於 10MB，將資料打包為一個壓縮檔 (ZIP/RAR) 後上傳";
+            document.getElementById('fileNameDisplay').classList.remove('text-indigo-600', 'font-semibold');
+            document.querySelectorAll('input[id$="_text"]').forEach(input => input.classList.add('hidden'));
+            updateQ5Counter();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        updateQ5Counter();
+    </script>
+</body>
+</html>
